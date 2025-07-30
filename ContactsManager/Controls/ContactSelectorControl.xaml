@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="View.Controls.ContactSelectorControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:View.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"         
+             xmlns:ViewModel="clr-namespace:ViewModel.Contact;assembly=ViewModel" d:Background="White"
+             IsEnabled="{Binding IsEnabled}">
+    <UserControl.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Height" Value="30"/>
+            <Style.Triggers>
+                
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <ListBox Grid.Row="0" ItemsSource="{Binding ContactViewCollection}" SelectedItem="{Binding SelectedPerson}" SelectedIndex="{Binding SelectedPersonIndex}" x:Name="ContactsListBox" SizeChanged="ContactsListBox_SizeChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Names[0].GivenName}" FontWeight="Bold" Margin="0,0,0,0"/>
+                        <TextBlock Text="{Binding Names[0].FamilyName}" FontWeight="Bold" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding PhoneNumbers[0].Value}" FontWeight="Bold" Margin="0,0,10,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center">
+            <Button Content="Добавить" Command="{Binding AddCommand}"/>
+            <Button Content="Удалить" Command="{Binding DeleteCommand}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34701.34
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "View", "ContactsManager\View.csproj", "{78BC75CD-781E-47C4-AEB0-8BF693D3C90A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ViewModel", "ViewModel\ViewModel.csproj", "{0E64A373-BEE9-417E-BC06-C45561F78F4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78BC75CD-781E-47C4-AEB0-8BF693D3C90A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78BC75CD-781E-47C4-AEB0-8BF693D3C90A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78BC75CD-781E-47C4-AEB0-8BF693D3C90A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78BC75CD-781E-47C4-AEB0-8BF693D3C90A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E64A373-BEE9-417E-BC06-C45561F78F4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E64A373-BEE9-417E-BC06-C45561F78F4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E64A373-BEE9-417E-BC06-C45561F78F4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E64A373-BEE9-417E-BC06-C45561F78F4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6D7773CA-A546-4EE5-95B3-370F8CCADAEE}
+	EndGlobalSection
+EndGlobal

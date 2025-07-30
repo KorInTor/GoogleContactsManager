@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="View.Controls.ContactDataControls.PhoneNumbersControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="450" 
+             d:DesignWidth="800"
+             d:Background="White">
+    <Grid>
+        <StackPanel>
+            <ItemsControl ItemsSource="{Binding Values}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Text="{Binding Value}" FontWeight="Bold" MinWidth="100" />
+                            <Button Style="{StaticResource DeleteButtonStyle}"
+                                Command="{Binding DataContext.DeleteValueCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                Visibility="{Binding DataContext.IsEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button
+                Style="{StaticResource AddButtonStyle}"
+                Content="+ Добавить номер"
+                Command="{Binding AddValueCommand}"
+                Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

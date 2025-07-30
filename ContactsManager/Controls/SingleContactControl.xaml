@@ -1,0 +1,105 @@
+﻿<UserControl x:Class="View.Controls.SingleContactControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:View.Controls"
+             xmlns:DataControls="clr-namespace:View.Controls.ContactDataControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             xmlns:ViewModel="clr-namespace:ViewModel.Contact;assembly=ViewModel" d:Background="White"
+             Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}" Cursor="">
+    <d:UserControl.DataContext>
+        <ViewModel:SingleContactVM/>
+    </d:UserControl.DataContext>
+    <UserControl.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="IsReadOnly" Value="{Binding DataContext.IsDataReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#FF007ACC"/>
+                    <!--<Setter Property="BorderThickness" Value="2"/>-->
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.6"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="140"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Image HorizontalAlignment="Left" Height="100" Margin="10,10,0,0" VerticalAlignment="Top" Width="100" Source="{Binding PersonImage}" Grid.Row="0" Grid.Column="0"/>
+        <!--Краткая информация-->
+        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10">
+            <TextBlock  Text="{Binding CurrentPerson.Names[0].DisplayName}" Margin="3,3,3,3" d:Text="Имя Фамилия Отчество" FontSize="20" FontWeight="Bold"/>
+            <TextBlock  Text="{Binding CurrentPerson.PhoneNumbers[0].Value}" Margin="3,3,3,3" d:Text="88005553535" FontSize="20" FontWeight="Bold"/>
+            
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding EditCommand}" Style="{StaticResource EditButtonStyle}" Height="50" Width="50"
+            Visibility="{Binding IsDataReadOnly, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Button Command="{Binding SaveChanges}" Style="{StaticResource AcceptButtonStyle}" Height="50" Width="50"
+            Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Button Command="{Binding CancelChanges}" Style="{StaticResource DeleteButtonStyle}" Height="50" Width="50"
+            Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                
+                <Button x:Name="TogglePopupButton" Style="{StaticResource AddButtonStyle}" Content="Выбрать группы" Width="150" Height="50" Click="TogglePopupButton_Click" HorizontalAlignment="Right"
+                        Visibility="{Binding IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Popup x:Name="ContactGroupPopup" PlacementTarget="{Binding ElementName=TogglePopupButton}"
+                    Placement="Bottom"
+                    StaysOpen="False"
+                    AllowsTransparency="True"
+                    PopupAnimation="Fade">
+                    <Border Background="White"
+                        BorderBrush="Gray"
+                        BorderThickness="1"
+                        Padding="10"
+                        CornerRadius="4">
+                        <local:ContactGroupPopup DataContext="{Binding GroupPopupVM}"/>
+                    </Border>
+                </Popup>
+            </StackPanel>
+        </StackPanel>
+        <GroupBox Header="Контактные данные" Margin="10" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Height="auto">
+            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                <StackPanel Margin="10" >
+
+                    <GroupBox Header="Имя" Margin="0,0,0,10">
+                        <DataControls:NameControl DataContext="{Binding NameVM}"/>
+                    </GroupBox>
+
+                    <GroupBox Header="Email">
+                        <DataControls:EmailsControl DataContext="{Binding EmailAddressVM}"/>
+                    </GroupBox>
+
+                    <GroupBox Header="Телефонный номер">
+                        <DataControls:PhoneNumbersControl DataContext="{Binding PhoneNumbersVM}"/>
+                    </GroupBox>
+
+                    <GroupBox Header="День Рождения">
+                        <DataControls:BirthdayControl DataContext="{Binding BirthdayVM}"/>
+                    </GroupBox>
+
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+
+    </Grid>
+</UserControl>

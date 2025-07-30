@@ -1,0 +1,29 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ContactsManager"
+        xmlns:Controls="clr-namespace:View.Controls" x:Class="ContactsManager.MainWindow"
+        mc:Ignorable="d"
+        Title="ContactManager" Height="482" Width="956"
+        xmlns:ViewModel="clr-namespace:ViewModel.Contact;assembly=ViewModel"
+        Icon="icons/client.png">
+    <Window.DataContext>
+        <ViewModel:ContactsWindowVM/>
+    </Window.DataContext>
+    <Window.Resources>
+        
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Controls:ContactGroupSelector Grid.Column="0" DataContext="{Binding ContactGroupVM}" Height="auto" Width="auto"/>
+        <Controls:ContactSelectorControl Grid.Column="1" DataContext="{Binding ContactSelectorVM}" Height="auto" Width="auto"/>
+        <Controls:SingleContactControl Grid.Column="2" Margin="0,0,0,0" Height="auto" Width="auto" DataContext="{Binding SingleContactVM}"/>
+        
+    </Grid>
+</Window>
