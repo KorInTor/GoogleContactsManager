@@ -17,25 +17,25 @@ namespace ViewModel.Contact
         [NotifyPropertyChangedFor(nameof(IsEnabled))]
         public bool _isDataReadOnly;
 
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new();
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsVisible))]
-        private Person _currentPerson;
+        private Person? _currentPerson;
 
         [ObservableProperty]
         private EditeState _editeState;
 
-        private ContactDataGenericVM<EmailAddress> _emailAddressVM = new("emailAddresses");
-        private ContactDataGenericVM<PhoneNumber> _phoneNumbersVM = new("phoneNumbers");
-        private ContactDataGenericSingletonVM<Name> _nameVM = new("names");
-        private ContactDataGenericSingletonVM<GoogleDatePickerVM> _birthdayVM = new("birthdays");
-        private ContactGroupPopupVM _groupPopupVM = new();
+        private readonly ContactDataGenericVM<EmailAddress> _emailAddressVM = new("emailAddresses");
+        private readonly ContactDataGenericVM<PhoneNumber> _phoneNumbersVM = new("phoneNumbers");
+        private readonly ContactDataGenericSingletonVM<Name> _nameVM = new("names");
+        private readonly ContactDataGenericSingletonVM<GoogleDatePickerVM> _birthdayVM = new("birthdays");
+        private readonly ContactGroupPopupVM _groupPopupVM = new();
 
-        private List<IGenericPersonDataVM> _genericPersonDataVMs = [];
+        private readonly List<IGenericPersonDataVM> _genericPersonDataVMs = [];
 
         [ObservableProperty]
-        private BitmapImage _personImage;
+        private BitmapImage? _personImage;
 
         public IRelayCommand CancelChanges { get; set; }
         public IRelayCommand EditCommand { get; set; }
@@ -47,9 +47,6 @@ namespace ViewModel.Contact
         public ContactDataGenericSingletonVM<GoogleDatePickerVM> BirthdayVM => _birthdayVM;
         public ContactGroupPopupVM GroupPopupVM => _groupPopupVM;
         public IRelayCommand SaveChanges { get; set; }
-
-        public SingleContactVM()
-        { }
 
         public SingleContactVM(IRelayCommand editCommand, IRelayCommand saveChanges, IRelayCommand cancelChanges, IList<ContactGroup> validContactGroups)
         {
@@ -70,6 +67,8 @@ namespace ViewModel.Contact
 
         public void UpdateCurrentPersonDataFromUI()
         {
+            if (CurrentPerson is null)
+                return;
             CurrentPerson.PhoneNumbers = PhoneNumbersVM.Values;
             CurrentPerson.Names = [NameVM.Value];
             CurrentPerson.EmailAddresses = EmailAddressVM.Values;
@@ -79,10 +78,13 @@ namespace ViewModel.Contact
 
         public void UpdateUIDataFromCurrentPerson()
         {
+            if (CurrentPerson is null)
+                return;
+
             PhoneNumbersVM.SetNewValue(CurrentPerson.PhoneNumbers);
             NameVM.SetNewValue(CurrentPerson.Names?.FirstOrDefault());
             EmailAddressVM.SetNewValue(CurrentPerson.EmailAddresses);
-            BirthdayVM.SetNewValue(new(CurrentPerson.Birthdays?.FirstOrDefault().Date));
+            BirthdayVM.SetNewValue(new(CurrentPerson.Birthdays?.FirstOrDefault()?.Date));
             GroupPopupVM.ActualValues = CurrentPerson.Memberships;
         }
 
@@ -126,7 +128,7 @@ namespace ViewModel.Contact
             }
         }
 
-        partial void OnCurrentPersonChanged(Person value)
+        partial void OnCurrentPersonChanged(Person? value)
         {
             IsDataReadOnly = true;
             if (value == null)

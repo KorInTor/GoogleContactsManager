@@ -10,7 +10,7 @@ namespace ViewModel
     public class AuthorizationVM
     {
         public delegate void LoginHandler(UserCredential credential);
-        public event LoginHandler OnUserCredentialsReceived;
+        public event LoginHandler? OnUserCredentialsReceived;
 
         private bool _userCredentialsReceived = false;
         public bool UserCredentialsReceived { get => _userCredentialsReceived; }
@@ -25,6 +25,15 @@ namespace ViewModel
         public void Login()
         {
             UserCredential credential;
+
+            string credPath = Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
+                "ContactsManger");
+
+            if (Directory.Exists(credPath))
+            {
+                Directory.Delete(credPath, true);
+            }
 
             try
             {

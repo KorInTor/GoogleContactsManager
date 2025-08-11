@@ -3,23 +3,24 @@ using CommunityToolkit.Mvvm.Input;
 using Google.Apis.PeopleService.v1.Data;
 using Google.Apis.Util;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ViewModel.Contact
 {
     public partial class ContactGroupVM : ObservableObject
     {
-        private ObservableCollection<ContactGroup> _contactGroups = [];
+        private readonly ObservableCollection<ContactGroup> _contactGroups = [];
         public ObservableCollection<ContactGroup> ContactGroups { get { return _contactGroups; } }
-        private string _backUpGroupName;
 
         [ObservableProperty]
-        private ContactGroup _selectedGroup;
+        private ContactGroup? _selectedGroup;
 
         [ObservableProperty]
         private int _selectedGroupIndex;
 
         [ObservableProperty]
         public bool _isEnabled = true;
+        
         public IRelayCommand<ContactGroup> DeleteGroupCommand { get; set; }
         public IRelayCommand AddGroupCommand { get; set; }
         public IRelayCommand<ContactGroup> EditGroupCommand { get; set; }
@@ -34,6 +35,7 @@ namespace ViewModel.Contact
 
         private void DeleteGroup(ContactGroup? groupToDelete)
         {
+            ArgumentNullException.ThrowIfNull(groupToDelete);
             bool? deleteSuccesfull = DeleteDataRequest?.Invoke(groupToDelete);
             if (!deleteSuccesfull.HasValue || deleteSuccesfull == false)
                 return;
@@ -42,7 +44,6 @@ namespace ViewModel.Contact
             if (index == 0 && ContactGroups.Count == 1)
             {
                 SelectedGroupIndex = -1;
-                SelectedGroup = null;
                 ContactGroups.Clear();
             }
             else
@@ -52,6 +53,6 @@ namespace ViewModel.Contact
             }
         }
 
-        public Func<ContactGroup, bool> DeleteDataRequest;
+        public Func<ContactGroup, bool>? DeleteDataRequest;
     }
 }

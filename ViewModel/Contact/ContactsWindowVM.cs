@@ -14,16 +14,25 @@ namespace ViewModel.Contact
 {
     public partial class ContactsWindowVM : ObservableObject
     {
-        private ContactSelectorVM _contactSelectorVM;
-        private SingleContactVM _singleContactVM;
-        private ContactGroupVM _contactGroupSelectorVM;
+        private readonly ContactSelectorVM _contactSelectorVM;
+        private readonly SingleContactVM _singleContactVM;
+        private readonly ContactGroupVM _contactGroupSelectorVM;
 
         private PeopleServiceService? _service = null;
+        public PeopleServiceService Service 
+        {
+            get
+            {
+                if (_service is null)
+                    throw new NullReferenceException("People Service was not initialized");
+                return _service;
+            }
+        }
 
         [ObservableProperty]
-        private UserCredential _userCredential;
+        private UserCredential? _userCredential;
 
-        private string[] _validFields =
+        private readonly string[] _validFields =
         [
             "addresses", "ageRanges", "biographies", "birthdays", "calendarUrls", "clientData",
             "coverPhotos", "emailAddresses", "events", "externalIds", "genders", "imClients",
@@ -32,7 +41,7 @@ namespace ViewModel.Contact
             "relations", "sipAddresses", "skills", "urls", "userDefined"
         ];
 
-        private string[] _unsuportedGroupNames = ["friends", "family", "coworkers", "chatBuddies", "blocked"];
+        private readonly string[] _unsuportedGroupNames = ["friends", "family", "coworkers", "chatBuddies", "blocked"];
 
         public string ValidFieldsCombined { get => string.Join(",", _validFields); }
 
@@ -40,7 +49,7 @@ namespace ViewModel.Contact
         public SingleContactVM SingleContactVM { get => _singleContactVM; }
         public ContactGroupVM ContactGroupVM { get => _contactGroupSelectorVM; }
 
-        public string JsonBackUp { get; set; }
+        public string JsonBackUp { get; private set; } = "";
 
         public List<Person> Contacts { get; } = [];
 
@@ -64,7 +73,7 @@ namespace ViewModel.Contact
                 return;
 
             var createRequestBody = new CreateContactGroupRequest { ContactGroup = new() { Name = newName } };
-            var createRequest = _service.ContactGroups.Create(createRequestBody);
+            var createRequest = Service.ContactGroups.Create(createRequestBody);
             ExecuteRequestSafe(createRequest.Execute);
             ContactGroupVM.EditeState = EditeState.None;
             UpdateContactGroups();
@@ -83,9 +92,11 @@ namespace ViewModel.Contact
 
             group.Name = newName;
 
-            var updateRequest = new UpdateContactGroupRequest();
-            updateRequest.ContactGroup = group;
-            var resourceUpdateRequest = _service.ContactGroups.Update(updateRequest, group.ResourceName);
+            var updateRequest = new UpdateContactGroupRequest
+            {
+                ContactGroup = group
+            };
+            var resourceUpdateRequest = Service.ContactGroups.Update(updateRequest, group.ResourceName);
             var newContact = ExecuteRequestSafe(resourceUpdateRequest.Execute);
             if (newContact is null)
                 return;
@@ -118,11 +129,11 @@ namespace ViewModel.Contact
 
         private bool DeleteGroupHandler(ContactGroup? groupToDelete)
         {
-            if (ConfirmRequested is null)
+            if (ConfirmRequested is null || groupToDelete is null)
                 return false;
 
             bool confirmed = ConfirmRequested.Invoke("Удалить элемент", "Удалить данные о контактах группы?");
-            var delReq = _service.ContactGroups.Delete(groupToDelete.ResourceName);
+            var delReq = Service.ContactGroups.Delete(groupToDelete.ResourceName);
             delReq.DeleteContacts = confirmed;
             if (ExecuteRequestSafe(delReq.Execute) is not null)
             {
@@ -135,6 +146,9 @@ namespace ViewModel.Contact
         [RelayCommand]
         private void AddContact()
         {
+            if (ContactGroupVM.SelectedGroup is null)
+                throw new ArgumentNullException(nameof(ContactGroupVM.SelectedGroup));
+
             Person newPerson = new();
             Contacts.Add(newPerson);
             newPerson.Memberships = [];
@@ -158,6 +172,9 @@ namespace ViewModel.Contact
         [RelayCommand]
         private void CancelChanges()
         {
+            if (ContactSelectorVM.SelectedPerson is null)
+                return;
+
             var index = Contacts.IndexOf(ContactSelectorVM.SelectedPerson); ;
 
             if (SingleContactVM.EditeState == EditeState.Create)
@@ -165,7 +182,6 @@ namespace ViewModel.Contact
                 if (index == 0)
                 {
                     ContactSelectorVM.SelectedPersonIndex = -1;
-                    ContactSelectorVM.SelectedPerson = null;
                     Contacts.Clear();
                 }
                 else
@@ -181,7 +197,7 @@ namespace ViewModel.Contact
 
             if (SingleContactVM.EditeState == EditeState.Update)
             {
-                var backUpPerson = JsonConvert.DeserializeObject<Person>(JsonBackUp);
+                var backUpPerson = JsonConvert.DeserializeObject<Person>(JsonBackUp) ?? throw new ArgumentNullException("Failed to deserialize Backup person");
                 Contacts[index] = backUpPerson;
                 ContactSelectorVM.SelectedPerson = Contacts[index];
                 ContactGroupVM.IsEnabled = true;
@@ -192,16 +208,17 @@ namespace ViewModel.Contact
         [RelayCommand]
         private void DeleteContact()
         {
-            Person deletePerson = ContactSelectorVM.SelectedPerson;
+            if (ContactSelectorVM.SelectedPerson is null)
+                return;
 
-            var result = ExecuteRequestSafe(_service.People.DeleteContact(deletePerson.ResourceName).Execute);
+            Person deletePerson = ContactSelectorVM.SelectedPerson;
+            var result = ExecuteRequestSafe(Service.People.DeleteContact(deletePerson.ResourceName).Execute);
             if (result is null)
                 return;
 
             if (ContactSelectorVM.SelectedPersonIndex == 0)
             {
                 ContactSelectorVM.SelectedPersonIndex = -1;
-                ContactSelectorVM.SelectedPerson = null;
                 Contacts.Clear();
                 return;
             }
@@ -220,8 +237,11 @@ namespace ViewModel.Contact
             ContactSelectorVM.IsEnabled = false;
         }
 
-        partial void OnUserCredentialChanged(UserCredential value)
+        partial void OnUserCredentialChanged(UserCredential? value)
         {
+            if (value is null)
+                throw new ArgumentNullException("User credentials cannot be null");
+
             InitService();
             UpdateContactGroups();
             UpdateContacts();
@@ -230,10 +250,10 @@ namespace ViewModel.Contact
         private void UpdateContacts()
         {
             Contacts.Clear();
-            var listReq = _service.People.Connections.List("people/me");
+            var listReq = Service.People.Connections.List("people/me");
             listReq.PersonFields = ValidFieldsCombined;
             var responceList = ExecuteRequestSafe(listReq.Execute);
-            if (responceList is null)
+            if (responceList is null || responceList.Connections is null)
                 return;
 
             foreach (var contact in responceList.Connections)
@@ -244,7 +264,7 @@ namespace ViewModel.Contact
 
         private void UpdateContactGroups()
         {
-            var listGroupReq = _service.ContactGroups.List();
+            var listGroupReq = Service.ContactGroups.List();
             var listGroupResp = ExecuteRequestSafe(listGroupReq.Execute);
             if (listGroupResp is null)
                 return;
@@ -268,14 +288,14 @@ namespace ViewModel.Contact
         {
             _service = new PeopleServiceService(new BaseClientService.Initializer()
             {
-                HttpClientInitializer = _userCredential,
+                HttpClientInitializer = UserCredential,
                 ApplicationName = "People API Sample",
             });
         }
 
         public bool TryGetPeopleForGroup(ref IEnumerable<Person> personsList, string groupResoureName)
         {
-            var getGroupReq = _service.ContactGroups.Get(groupResoureName);
+            var getGroupReq = Service.ContactGroups.Get(groupResoureName);
             getGroupReq.MaxMembers = 1000;
             ContactGroup? groupResp;
             groupResp = ExecuteRequestSafe(getGroupReq.Execute);
@@ -295,7 +315,7 @@ namespace ViewModel.Contact
             if (memberNames.Count == 0)
                 return true;
 
-            var getReq = _service.People.GetBatchGet();
+            var getReq = Service.People.GetBatchGet();
             getReq.ResourceNames = memberNames;
             getReq.PersonFields = ValidFieldsCombined;
             var responce = ExecuteRequestSafe(getReq.Execute);
@@ -310,6 +330,9 @@ namespace ViewModel.Contact
         [RelayCommand]
         private void SaveChanges()
         {
+            if (ContactSelectorVM.SelectedPerson is null)
+                return;
+
             SingleContactVM.IsDataReadOnly = true;
             SingleContactVM.UpdateCurrentPersonDataFromUI();
             string personFields = string.Join(",", SingleContactVM.GetChangedPersonFields().Select(personField => $"{personField}"));
@@ -325,7 +348,7 @@ namespace ViewModel.Contact
                     break;
 
                 case EditeState.Create:
-                    var createContactRequest = _service.People.CreateContact(SingleContactVM.CurrentPerson);
+                    var createContactRequest = Service.People.CreateContact(SingleContactVM.CurrentPerson);
                     createContactRequest.PersonFields = personFields;
                     newPersonInfo = ExecuteRequestSafe(createContactRequest.Execute);
                     break;
@@ -334,7 +357,7 @@ namespace ViewModel.Contact
                     throw new NotSupportedException("This edit state not currently supported.");
             }
 
-            newPersonInfo ??= JsonConvert.DeserializeObject<Person>(JsonBackUp);
+            newPersonInfo ??= JsonConvert.DeserializeObject<Person>(JsonBackUp) ?? throw new ArgumentNullException("Failed to deserialize Backup person");
             int originIndex = Contacts.IndexOf(ContactSelectorVM.SelectedPerson);
             Contacts[originIndex] = newPersonInfo;
             ContactSelectorVM.SelectedPerson = Contacts[originIndex];
@@ -345,7 +368,10 @@ namespace ViewModel.Contact
 
         private bool TryUpdateContact(string personFields, ref Person? newPersonInfo)
         {
-            var updateContactRequest = _service.People.UpdateContact(SingleContactVM.CurrentPerson, SingleContactVM.CurrentPerson.ResourceName);
+            if (SingleContactVM.CurrentPerson is null)
+                return false;
+
+            var updateContactRequest = Service.People.UpdateContact(SingleContactVM.CurrentPerson, SingleContactVM.CurrentPerson.ResourceName);
             updateContactRequest.UpdatePersonFields = personFields;
             try
             {
@@ -354,7 +380,7 @@ namespace ViewModel.Contact
             catch (GoogleApiException updateException) when (updateException.HttpStatusCode == HttpStatusCode.PreconditionFailed)
             {
                 OnExceptionNotify(updateException, "Данный контакт уже обновлен удаленно!\nПосле обновления данных попробуйте снова.");
-                var getContactRequest = _service.People.Get(SingleContactVM.CurrentPerson.ResourceName);
+                var getContactRequest = Service.People.Get(SingleContactVM.CurrentPerson.ResourceName);
                 getContactRequest.PersonFields = ValidFieldsCombined;
                 newPersonInfo = ExecuteRequestSafe(getContactRequest.Execute);
                 if (newPersonInfo is not null)
@@ -407,14 +433,17 @@ namespace ViewModel.Contact
         {
             if (e.PropertyName == nameof(ContactSelectorVM.SelectedPerson))
             {
+                if (ContactSelectorVM.SelectedPerson is null)
+                    return;
+
                 SingleContactVM.CurrentPerson = ContactSelectorVM.SelectedPerson;
                 SingleContactVM.EditeState = EditeState.None;
             }
         }
 
-        public event Action<string> ErrorMessage;
+        public event Action<string>? ErrorMessage;
 
-        public event Action<string> InformationMessage;
+        public event Action<string>? InformationMessage;
 
         public event Func<string, string, bool>? ConfirmRequested;
 

@@ -27,7 +27,7 @@ namespace ViewModel.Contact
         public ListCollectionView ContactViewCollection { get; private set; }
 
         [ObservableProperty]
-        private Person _selectedPerson;
+        private Person? _selectedPerson;
 
         [ObservableProperty]
         private int _selectedPersonIndex;
@@ -49,7 +49,7 @@ namespace ViewModel.Contact
             ContactViewCollection.Filter = FilterPersonsPredicate;
         }
 
-        partial void OnTargetPersonChanged(Person? value)
+        partial void OnTargetPersonChanged(Person value)
         {
             ContactViewCollection.Refresh();
         }
@@ -129,7 +129,7 @@ namespace ViewModel.Contact
             return result;
         }
 
-        private bool Matches(string source, string filter)
+        private static bool Matches(string source, string filter)
         {
             if (string.IsNullOrEmpty(filter))
                 return true;
@@ -138,7 +138,5 @@ namespace ViewModel.Contact
 
             return source.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
         }
-
-        public Func<Person, bool> DeleteDataRequest;
     }
 }

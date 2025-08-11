@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace ViewModel.Contact.ValuePicker
 {
-    public partial class GoogleDatePickerVM : ObservableValidator
+    public class GoogleDatePickerVM : ObservableValidator
     {
         [Newtonsoft.Json.JsonIgnore]
         private bool _supressValidation = false;
@@ -25,10 +25,12 @@ namespace ViewModel.Contact.ValuePicker
         {
             get
             {
-                var date = new Date();
-                date.Year = Year;
-                date.Day = Day;
-                date.Month = SelectedMonth.Item1;
+                var date = new Date
+                {
+                    Year = Year,
+                    Day = Day,
+                    Month = SelectedMonth.Item1
+                };
                 return date;
             }
             set
@@ -126,9 +128,9 @@ namespace ViewModel.Contact.ValuePicker
             return new DateTime(1, month, 1).ToString("MMMM", culture);
         }
 
-        public static ValidationResult ValidateDayCombination(object? validationObject, ValidationContext context)
+        public static ValidationResult? ValidateDayCombination(object? validationObject, ValidationContext context)
         {
-            bool isValid = ((GoogleDatePickerVM)context.ObjectInstance)._supressValidation || ((GoogleDatePickerVM)context.ObjectInstance).isDateValid();
+            bool isValid = ((GoogleDatePickerVM)context.ObjectInstance)._supressValidation || ((GoogleDatePickerVM)context.ObjectInstance).IsDateValid();
             if (isValid)
             {
                 return ValidationResult.Success;
@@ -137,7 +139,7 @@ namespace ViewModel.Contact.ValuePicker
             return new ValidationResult("День некорректный");
         }
 
-        private bool isDateValid()
+        private bool IsDateValid()
         {
             if (Day is null)
                 return false;
